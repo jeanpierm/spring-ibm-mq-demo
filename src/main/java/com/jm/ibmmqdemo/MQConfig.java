@@ -6,11 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter;
-import org.springframework.jms.core.JmsOperations;
 import org.springframework.jms.core.JmsTemplate;
 
 import com.ibm.mq.jakarta.jms.MQQueueConnectionFactory;
 import com.ibm.msg.client.jakarta.wmq.WMQConstants;
+
+import jakarta.jms.JMSException;
 
 @Configuration
 public class MQConfig {
@@ -30,20 +31,14 @@ public class MQConfig {
     private long receiveTimeout;
 
     @Bean
-    MQQueueConnectionFactory mqQueueConnectionFactory() {
+    MQQueueConnectionFactory mqQueueConnectionFactory() throws JMSException {
         MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
         mqQueueConnectionFactory.setHostName(host);
-        try {
-            mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
-            mqQueueConnectionFactory.setCCSID(1208);
-            mqQueueConnectionFactory.setChannel(channel);
-            mqQueueConnectionFactory.setPort(port);
-            mqQueueConnectionFactory.setQueueManager(queueManager);
-            // mqQueueConnectionFactory.setStringProperty("XMSC_USERID", username);
-            // mqQueueConnectionFactory.setStringProperty("XMSC_PASSWORD", password);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+        mqQueueConnectionFactory.setCCSID(1208);
+        mqQueueConnectionFactory.setChannel(channel);
+        mqQueueConnectionFactory.setPort(port);
+        mqQueueConnectionFactory.setQueueManager(queueManager);
         return mqQueueConnectionFactory;
     }
 
@@ -70,7 +65,7 @@ public class MQConfig {
 
     @Bean
     @Primary
-    JmsOperations jmsOperations(CachingConnectionFactory cachingConnectionFactory) {
+    JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory) {
         JmsTemplate jmsTemplate = new JmsTemplate(cachingConnectionFactory);
         jmsTemplate.setReceiveTimeout(receiveTimeout);
         return jmsTemplate;
